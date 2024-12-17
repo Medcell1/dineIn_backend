@@ -21,6 +21,7 @@ const menuSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

@@ -13,12 +13,14 @@ router.get("/:userId", authenticate, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const workingHours = user.workingHours.map(workingHour => ({
+      ...workingHour.toObject(),
+      id: workingHour._id,
+      _id: undefined, 
+    }));
+    console.log({ workingHours: workingHours});
 
-    // Log working hours after finding the user
-    console.log({ workingHours: user.workingHours });
-
-    // Send the working hours of the user
-    res.status(200).json({ workingHours: user.workingHours });
+    res.status(200).json({ data: workingHours});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -41,7 +43,7 @@ router.put("/:userId", authenticate, async (req, res) => {
     user.workingHours = workingHours;
     await user.save();
 
-    res.status(200).json({ message: "Working hours updated successfully", user });
+    res.status(200).json({ message: "Working hours updated successfully", data: user.workingHours });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
