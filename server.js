@@ -15,7 +15,8 @@ server.use(
   cors({
     origin: (origin, callback) => {
       const allowedOrigins = [
-        "http://localhost:3000",
+        "http://localhost:3000", 
+        "https://dine-in-frontend.vercel.app", 
         /\.devtunnels\.ms$/, 
       ];
 
@@ -25,7 +26,7 @@ server.use(
           typeof allowed === "string" ? allowed === origin : allowed.test(origin)
         )
       ) {
-        return callback(null, true);
+        return callback(null, true); 
       } else {
         return callback(new Error("Not allowed by CORS"));
       }
@@ -33,6 +34,7 @@ server.use(
     credentials: true, 
   })
 );
+
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");

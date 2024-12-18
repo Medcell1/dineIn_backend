@@ -131,7 +131,6 @@ router.get("/name/:name", async (req, res) => {
 
     const currentDay = moment().format("dddd");
 
-    // Find user's working hours for current day
     const currentDayWorkingHours = user.workingHours.find(
       (hours) => hours.day.toLowerCase() === currentDay.toLowerCase()
     );
@@ -142,18 +141,15 @@ router.get("/name/:name", async (req, res) => {
         .json({ message: "No working hours found for today" });
     }
 
-    // Build the filter for menus
     const menuFilter = {
       createdBy: user._id,
       available: true,
     };
 
-    // Add search filtering if 'search' query exists
     if (searchQuery) {
-      menuFilter.name = { $regex: new RegExp(searchQuery, "i") }; // Case-insensitive search
+      menuFilter.name = { $regex: new RegExp(searchQuery, "i") };
     }
 
-    // Fetch menus with optional filtering
     const menus = await Menu.find(menuFilter).populate("category", "id name");
 
     res.json({
