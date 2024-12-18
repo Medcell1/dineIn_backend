@@ -16,10 +16,10 @@ server.use(
     origin: (origin, callback) => {
       const allowedOrigins = [
         "http://localhost:3000",
-        /\.devtunnels\.ms$/, // Allow all devtunnels subdomains
+        /\.devtunnels\.ms$/, 
       ];
 
-      if (!origin) return callback(null, true); // Allow requests without origin
+      if (!origin) return callback(null, true); 
       if (
         allowedOrigins.some((allowed) =>
           typeof allowed === "string" ? allowed === origin : allowed.test(origin)
@@ -30,7 +30,7 @@ server.use(
         return callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // Allow cookies and credentials
+    credentials: true, 
   })
 );
 

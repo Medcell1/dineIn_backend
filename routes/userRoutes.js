@@ -6,12 +6,72 @@ const router = express.Router();
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 const imageUploadHelper = require("../constants/imageUploadHelper");
-
+const moment = require('moment');
 // Get all users
 router.get("/", async (req, res) => {
   try {
-    const users = await User.find();
-    res.json(users);
+    const search = req.query.search;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skipIndex = (page - 1) * limit;
+
+    const filter = {};
+
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { location: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    // Get current day
+    const currentDay = new Date().toLocaleString('en-US', { weekday: 'long' });
+
+    const users = await User.find(filter)
+      .select('-password')
+      .sort({
+        createdAt: -1,
+        _id: 1
+      })
+      .limit(limit)
+      .skip(skipIndex);
+
+    const transformedUsers = users.map(user => {
+      const userObject = user.toObject();
+
+      const todayWorkingHours = Array.isArray(userObject.workingHours) 
+        ? userObject.workingHours.find(
+            hours => hours.day.toLowerCase() === currentDay.toLowerCase()
+          )
+        : null;
+
+      delete userObject.workingHours;
+
+      return {
+        ...userObject,
+        todayWorkingHours: todayWorkingHours 
+          ? {
+              openTime: todayWorkingHours.openTime,
+              closeTime: todayWorkingHours.closeTime
+            }
+          : null
+      };
+    });
+
+    const totalItems = await User.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      data: transformedUsers,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -55,10 +115,12 @@ router.put("/:id", upload.single("file"), authenticate, async (req, res) => {
   }
 });
 // Get user by NAME (case-insensitive)
+
 router.get("/name/:name", async (req, res) => {
   try {
     const userName = req.params.name;
-
+    const searchQuery = req.query.search; 
+    // Find user by name
     const user = await User.findOne({
       name: { $regex: new RegExp(`^${userName}$`, "i") },
     }).select("-password");
@@ -67,10 +129,40 @@ router.get("/name/:name", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const menus = await Menu.find({ userId: user._id });
+    const currentDay = moment().format("dddd");
+
+    // Find user's working hours for current day
+    const currentDayWorkingHours = user.workingHours.find(
+      (hours) => hours.day.toLowerCase() === currentDay.toLowerCase()
+    );
+
+    if (!currentDayWorkingHours) {
+      return res
+        .status(404)
+        .json({ message: "No working hours found for today" });
+    }
+
+    // Build the filter for menus
+    const menuFilter = {
+      createdBy: user._id,
+      available: true,
+    };
+
+    // Add search filtering if 'search' query exists
+    if (searchQuery) {
+      menuFilter.name = { $regex: new RegExp(searchQuery, "i") }; // Case-insensitive search
+    }
+
+    // Fetch menus with optional filtering
+    const menus = await Menu.find(menuFilter).populate("category", "id name");
 
     res.json({
       user,
+      todayWorkingHour: {
+        day: currentDay,
+        openTime: currentDayWorkingHours.openTime,
+        closeTime: currentDayWorkingHours.closeTime,
+      },
       menus,
     });
   } catch (error) {
@@ -78,6 +170,8 @@ router.get("/name/:name", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+
 
 // Get user by ID
 router.get("/:id", authenticate, async (req, res) => {
