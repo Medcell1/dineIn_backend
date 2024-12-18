@@ -1,5 +1,5 @@
 
-# Food Ecommerce Backend
+# DineIn Food Ecommerce Backend
 
 This repository contains the backend code for the **Food Ecommerce** platform, a service that allows users to browse, order, and manage food items. This backend is built using Node.js, Express, and MongoDB.
 
@@ -61,8 +61,6 @@ PORT=3000
 # JWT Secret
 JWT_SECRET=your_jwt_secret
 
-# Other configurations (optional)
-# Payment Gateway API keys, SMTP configurations, etc.
 ```
 
 ### 4. Start the Server
