@@ -1,5 +1,5 @@
 
-# Food Ecommerce Backend
+# DineIn Food Ecommerce Backend
 
 This repository contains the backend code for the **Food Ecommerce** platform, a service that allows users to browse, order, and manage food items. This backend is built using Node.js, Express, and MongoDB.
 
