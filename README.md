@@ -61,8 +61,6 @@ PORT=3000
 # JWT Secret
 JWT_SECRET=your_jwt_secret
 
-# Other configurations (optional)
-# Payment Gateway API keys, SMTP configurations, etc.
 ```
 
 ### 4. Start the Server
